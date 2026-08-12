@@ -1,0 +1,15 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+.next
+dist
+.wrangler
+outputs
+work
+deploy/certs
+deploy/backups
+*.log
+*.dump
+*.gz

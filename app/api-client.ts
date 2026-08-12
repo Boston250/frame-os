@@ -1,0 +1,38 @@
+export const liveApiEnabled = process.env.NEXT_PUBLIC_FRAME_API_MODE === "live";
+
+async function request<T>(path:string,options:RequestInit={}):Promise<T>{const response=await fetch(path,{...options,credentials:"include",headers:{"content-type":"application/json",...options.headers}});const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.error||`Request failed (${response.status})`);return payload;}
+const resource=(path:string)=>({list:()=>request<{data:Record<string,unknown>[]}>(`/api/${path}`),create:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${path}`,{method:"POST",body:JSON.stringify(input)}),update:(id:string,input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${path}/${id}`,{method:"PATCH",body:JSON.stringify(input)})});
+export const frameApi={
+  me:()=>request<{employee:Record<string,string> }>("/api/me"),
+  login:(employeeId:string,password:string)=>request<{employee:Record<string,string>;mustChangePassword:boolean}>("/api/auth/login",{method:"POST",body:JSON.stringify({employeeId,password})}),
+  logout:()=>request<{ok:boolean}>("/api/auth/logout",{method:"POST"}),
+  changePassword:(currentPassword:string,newPassword:string)=>request<{ok:boolean}>("/api/auth/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})}),
+  departments:()=>request<{data:Record<string,unknown>[]}>("/api/departments"),
+  employees:()=>request<{data:Record<string,unknown>[]}>("/api/employees"),
+  customers:()=>request<{data:Record<string,unknown>[]}>("/api/customers"),
+  tasks:()=>request<{data:Record<string,unknown>[]}>("/api/tasks"),
+  approvals:(view:"mine"|"submitted"|"completed"|"all"="mine")=>request<{data:Record<string,unknown>[]}>(`/api/approvals?view=${view}`),
+  createDepartment:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/departments",{method:"POST",body:JSON.stringify(input)}),
+  createEmployee:(input:Record<string,string>)=>request<{data:Record<string,unknown>;temporaryPassword:string}>("/api/employees",{method:"POST",body:JSON.stringify(input)}),
+  createCustomer:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/customers",{method:"POST",body:JSON.stringify(input)}),
+  createTask:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/tasks",{method:"POST",body:JSON.stringify(input)}),
+  updateCore:(resource:"departments"|"employees"|"customers"|"tasks",id:string,input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${resource}/${id}`,{method:"PATCH",body:JSON.stringify(input)}),
+  decideApproval:(id:string,decision:"approve"|"reject")=>request<{decision:string}>(`/api/approvals/${id}/${decision}`,{method:"POST"}),
+  dashboard:()=>request<Record<string,number>>("/api/dashboard"),
+  search:(query:string)=>request<{data:Record<string,unknown>[]}>(`/api/search?q=${encodeURIComponent(query)}`),
+  audit:()=>request<{data:Record<string,unknown>[]}>("/api/audit"),
+  roles:()=>request<{data:Record<string,unknown>[]}>("/api/roles"),
+  exportReport:(reportKey:string,format:"pdf"|"xlsx")=>request<{data:{id:string;status:string}}>("/api/exports",{method:"POST",body:JSON.stringify({reportKey,format})}),
+  attendance:(action:"check-in"|"check-out")=>request<{data:Record<string,unknown>}>(`/api/attendance/${action}`,{method:"POST"}),
+  attendanceEntries:()=>request<{data:Record<string,unknown>[]}>("/api/attendance"),
+  weeklyKpi:()=>request<{data:Record<string,unknown>[]}>("/api/weekly-kpi"),
+  accounting:()=>request<{data:Record<string,unknown>[]}>("/api/accounting"),
+  createJournal:(input:Record<string,unknown>)=>request<{data:Record<string,unknown>}>("/api/accounting",{method:"POST",body:JSON.stringify(input)}),
+  postJournal:(id:string)=>request<{data:Record<string,unknown>}>(`/api/accounting/${id}/post`,{method:"POST"}),
+  reports:()=>request<{data:Record<string,unknown>[]}>("/api/reports"),
+  notifications:()=>request<{data:Record<string,unknown>[]}>("/api/notifications"),
+  readNotification:(id:string)=>request<{ok:boolean}>(`/api/notifications/${id}/read`,{method:"POST"}),
+  contracts:resource("contracts"),kpis:resource("kpi-plans"),leave:resource("leave"),expenses:resource("expenses"),assets:resource("assets"),procurement:resource("purchase-requests"),
+  assetRequests:resource("asset-requests"),
+  services:resource("services"),packages:resource("packages"),meetings:resource("meetings"),dailyReports:resource("daily-reports"),discipline:resource("disciplinary-cases"),recruitment:resource("job-openings"),candidates:resource("candidates"),complaints:resource("complaints"),clientReports:resource("client-reports"),suppliers:resource("suppliers"),subscriptions:resource("subscriptions"),budgets:resource("budgets"),invoices:resource("invoices"),payroll:resource("payroll"),commissions:resource("commissions"),documents:resource("document-references"),
+};

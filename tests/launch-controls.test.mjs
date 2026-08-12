@@ -1,0 +1,6 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+test("launch APIs include search roles audit and secure downloads",async()=>{const source=await readFile(new URL("../server/admin-routes.mjs",import.meta.url),"utf8");for(const value of ["search","roles","audit","gm-activity","download"])assert.match(source,new RegExp(value));assert.match(source,/requested_by/);assert.match(source,/EXPORT_DIRECTORY/);});
+test("database enforces no-delete and closed periods",async()=>{const source=await readFile(new URL("../database/guards.sql",import.meta.url),"utf8");assert.match(source,/journal_closed_period_guard/);for(const value of ["customers_no_delete","contracts_no_delete","tasks_no_delete","employees_no_delete","invoices_no_delete","assets_no_delete"])assert.match(source,new RegExp(value));});
+test("production includes backup and restore verification",async()=>{const [backup,restore]=await Promise.all([readFile(new URL("../deploy/backup.sh",import.meta.url),"utf8"),readFile(new URL("../deploy/restore-test.sh",import.meta.url),"utf8")]);assert.match(backup,/pg_dump/);assert.match(backup,/sha256sum/);assert.match(restore,/pg_restore/);assert.match(restore,/schema_migrations/);});
