@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: frame-os
+    name: frame-os-trial
     runtime: docker
     dockerfilePath: ./Dockerfile.render
     plan: free
