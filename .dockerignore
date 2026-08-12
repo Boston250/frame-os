@@ -1,6 +1,7 @@
 .git
 .env
 .env.*
+frame-os
 !.env.example
 node_modules
 .next

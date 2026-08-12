@@ -1,0 +1,19 @@
+FROM node:22-alpine AS build
+WORKDIR /app
+ENV NEXT_PUBLIC_FRAME_API_MODE=live
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+RUN apk add --no-cache nginx
+ENV NODE_ENV=production \
+    NEXT_PUBLIC_FRAME_API_MODE=live \
+    API_PORT=4000 \
+    EXPORT_DIRECTORY=/tmp/frame-exports
+COPY --from=build /app ./
+COPY deploy/render-nginx.conf /etc/nginx/http.d/default.conf
+RUN chmod +x deploy/render-start.sh
+CMD ["./deploy/render-start.sh"]
