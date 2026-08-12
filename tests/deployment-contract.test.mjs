@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import yaml from "js-yaml";
+
+test("compose definition parses and has acyclic healthy startup gates",async()=>{const source=await readFile(new URL("../deploy/docker-compose.yml",import.meta.url),"utf8");const compose=yaml.load(source);const required=["app","api","worker","migrate","postgres","redis","nginx"];for(const name of required)assert.ok(compose.services[name],`${name} service missing`);assert.equal(compose.services.api.depends_on.migrate.condition,"service_completed_successfully");assert.equal(compose.services.app.depends_on.migrate.condition,"service_completed_successfully");assert.equal(compose.services.migrate.depends_on.postgres.condition,"service_healthy");assert.ok(compose.services.api.volumes.includes("frame_exports:/var/lib/frame/exports:ro"));assert.ok(compose.services.worker.volumes.includes("frame_exports:/var/lib/frame/exports"));assert.ok(compose.services.nginx.depends_on.api);assert.ok(compose.services.nginx.depends_on.app);});
+
+test("container context excludes production secrets certificates and local data",async()=>{const ignore=await readFile(new URL("../.dockerignore",import.meta.url),"utf8");for(const value of [".env","node_modules","deploy/certs","deploy/backups","*.dump"])assert.match(ignore,new RegExp(value.replace(/[.*]/g,match=>`\\${match}`)));});
+
+test("nginx exposes only TLS and internal data services publish no ports",async()=>{const [composeSource,nginx]=await Promise.all([readFile(new URL("../deploy/docker-compose.yml",import.meta.url),"utf8"),readFile(new URL("../deploy/nginx.conf",import.meta.url),"utf8")]);const compose=yaml.load(composeSource);assert.deepEqual(compose.services.nginx.ports,["80:80","443:443"]);for(const name of ["postgres","redis","api","app","worker"])assert.equal(compose.services[name].ports,undefined);assert.match(nginx,/Strict-Transport-Security/);assert.match(nginx,/X-Frame-Options DENY/);assert.match(nginx,/limit_req/);});

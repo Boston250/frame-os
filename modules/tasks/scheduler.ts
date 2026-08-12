@@ -1,0 +1,4 @@
+export type ScheduledAction={key:string;entityId:string;runAt:Date;payload:Record<string,unknown>};
+export function contractRenewal(id:string,end:Date):ScheduledAction{return{key:`contract-renewal:${id}:${end.toISOString()}`,entityId:id,runAt:new Date(end.getTime()-7*86400000),payload:{notify:["salesperson","account_manager"],emailClient:true}}}
+export function subscriptionExpiry(id:string,end:Date):ScheduledAction{return{key:`subscription-expiry:${id}:${end.toISOString()}`,entityId:id,runAt:new Date(end.getTime()-7*86400000),payload:{notify:["finance","responsible_manager","general_manager","ceo"]}}}
+export function inactiveLead(id:string,last:Date):ScheduledAction{return{key:`inactive-lead:${id}:${last.toISOString()}`,entityId:id,runAt:new Date(last.getTime()+7*86400000),payload:{notify:["salesperson","sales_manager"],allowReassignment:true}}}
