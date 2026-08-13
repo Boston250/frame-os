@@ -1,0 +1,23 @@
+FROM node:22-alpine AS build
+WORKDIR /app
+ENV NEXT_PUBLIC_FRAME_API_MODE=live
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+RUN apk add --no-cache nginx
+ENV NODE_ENV=production \
+    NEXT_PUBLIC_FRAME_API_MODE=live \
+    API_PORT=4000 \
+    EXPORT_DIRECTORY=/var/lib/frame/exports
+COPY --from=build /app ./
+COPY deploy/coolify-nginx.conf /etc/nginx/http.d/default.conf
+RUN chmod +x deploy/coolify-start.sh \
+    && mkdir -p /var/lib/frame/exports
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:8080/api/health >/dev/null || exit 1
+CMD ["./deploy/coolify-start.sh"]
