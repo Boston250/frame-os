@@ -6,7 +6,7 @@ Each phase ends with a usable, tested vertical slice. Authorization, audit loggi
 
 All planned phases now have implemented interface coverage, schema contracts and workflow architecture. Remaining work is production activation with company data, infrastructure and provider credentials.
 
-## Phase 0 — Foundation design (current)
+## Phase 0 — Foundation design (completed)
 
 - Consolidate requirements and domain vocabulary.
 - Establish module boundaries and dependency rules.
@@ -88,7 +88,7 @@ All planned phases now have implemented interface coverage, schema contracts and
 - Security tests for session handling, rate limits, audit tampering and export access.
 - Accounting reconciliation and payroll fixtures verified by Finance/HR stakeholders.
 
-## First development backlog
+## Completed development backlog
 
 1. Create PostgreSQL migration from `database/schema.sql`.
 2. Implement employee ID generation and account/session repositories.

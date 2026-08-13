@@ -22,4 +22,4 @@ The finalized requirement groups are implemented across the interface, applicati
 
 This is 100% solution and implementation coverage of the approved specification. It is not a claim that a production environment is live. Activation requires real company configuration and credentials: VPS/domain, TLS certificates, PostgreSQL/Redis, employee records, SMTP, WhatsApp Business, office-network addresses and backup destination. These values cannot be safely invented in source code.
 
-Demo mode uses representative review data. Live mode uses authenticated PostgreSQL records through the application API.
+Demo mode uses representative review data. Live mode uses authenticated PostgreSQL records through the application API. Module totals, current date, selected workspace, permission-based navigation and approval counts are computed from the active production session rather than demonstration values.

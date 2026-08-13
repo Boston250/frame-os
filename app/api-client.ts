@@ -21,7 +21,7 @@ export const frameApi={
   createTask:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/tasks",{method:"POST",body:JSON.stringify(input)}),
   updateCore:(resource:"departments"|"employees"|"customers"|"tasks",id:string,input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${resource}/${id}`,{method:"PATCH",body:JSON.stringify(input)}),
   decideApproval:(id:string,decision:"approve"|"reject")=>request<{decision:string}>(`/api/approvals/${id}/${decision}`,{method:"POST"}),
-  dashboard:()=>request<Record<string,number>>("/api/dashboard"),
+  dashboard:()=>request<Record<string,unknown>>("/api/dashboard"),
   search:(query:string)=>request<{data:Record<string,unknown>[]}>(`/api/search?q=${encodeURIComponent(query)}`),
   audit:()=>request<{data:Record<string,unknown>[]}>("/api/audit"),
   roles:()=>request<{data:Record<string,unknown>[]}>("/api/roles"),
