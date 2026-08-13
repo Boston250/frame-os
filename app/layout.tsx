@@ -17,11 +17,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://os.framemedia.agency"),
   title: {
     default: "FRAME OS",
     template: "%s | FRAME OS",
   },
   description: "Internal business operations system for FRAME Media Agency.",
+  openGraph: { title: "FRAME OS", description: "One system. Every operation.", images: ["/og.png"] },
+  twitter: { card: "summary_large_image", title: "FRAME OS", description: "One system. Every operation.", images: ["/og.png"] },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
