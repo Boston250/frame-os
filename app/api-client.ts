@@ -24,6 +24,7 @@ export const frameApi={
   roles:()=>request<{data:Record<string,unknown>[]}>("/api/roles"),
   permissions:()=>request<{data:Record<string,unknown>[]}>("/api/permissions"),
   createRole:(input:Record<string,unknown>)=>request<{data:Record<string,unknown>}>("/api/roles",{method:"POST",body:JSON.stringify(input)}),
+  setRolePermissions:(roleId:string,permissions:Array<{key:string;scope:string}>)=>request<{data:Record<string,unknown>}>(`/api/roles/${roleId}/permissions`,{method:"PUT",body:JSON.stringify({permissions})}),
   assignRole:(employeeId:string,input:Record<string,string>)=>request<{ok:boolean}>(`/api/employees/${employeeId}/roles`,{method:"POST",body:JSON.stringify(input)}),
   attendanceNetworks:{list:()=>request<{data:Record<string,unknown>[]}>("/api/attendance-networks"),create:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/attendance-networks",{method:"POST",body:JSON.stringify(input)})},
   attendanceSchedules:{list:()=>request<{data:Record<string,unknown>[]}>("/api/attendance-schedules"),create:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/attendance-schedules",{method:"POST",body:JSON.stringify(input)})},
