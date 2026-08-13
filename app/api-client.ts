@@ -3,7 +3,7 @@ export const liveApiEnabled = process.env.NEXT_PUBLIC_FRAME_API_MODE === "live";
 async function request<T>(path:string,options:RequestInit={}):Promise<T>{const response=await fetch(path,{...options,credentials:"include",headers:{"content-type":"application/json",...options.headers}});const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.error||`Request failed (${response.status})`);return payload;}
 const resource=(path:string)=>({list:()=>request<{data:Record<string,unknown>[]}>(`/api/${path}`),create:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${path}`,{method:"POST",body:JSON.stringify(input)}),update:(id:string,input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${path}/${id}`,{method:"PATCH",body:JSON.stringify(input)})});
 export const frameApi={
-  me:()=>request<{employee:Record<string,string> }>("/api/me"),
+  me:()=>request<{employee:Record<string,string>;permissions:string[]}>("/api/me"),
   login:(employeeId:string,password:string)=>request<{employee:Record<string,string>;mustChangePassword:boolean}>("/api/auth/login",{method:"POST",body:JSON.stringify({employeeId,password})}),
   logout:()=>request<{ok:boolean}>("/api/auth/logout",{method:"POST"}),
   changePassword:(currentPassword:string,newPassword:string)=>request<{ok:boolean}>("/api/auth/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})}),

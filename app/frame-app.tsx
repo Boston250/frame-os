@@ -20,6 +20,7 @@ const nav: { key: ModuleKey; icon: string; label: string; badge?: number }[] = [
   { key: "reports", icon: "▤", label: "Reports" },
   { key: "administration", icon: "⚙", label: "Administration" },
 ];
+const modulePermissions:Record<ModuleKey,string[]>={dashboard:["dashboard.view"],crm:["customers.view"],clients:["contracts.view","services.view","client_reports.view","complaints.view"],operations:["tasks.view","meetings.view","daily_reports.view"],performance:["kpi.view"],hr:["employees.view","attendance.view","leave.view"],finance:["expenses.view","invoices.view","payroll.view","budgets.view","accounting.view"],assets:["assets.view","asset-requests.view"],procurement:["procurement.view","suppliers.view","subscriptions.view"],approvals:["approvals.view"],reports:["reports.view","audit.view"],administration:["roles.configure","departments.view","attendance.configure"]};
 
 const moduleData: Record<Exclude<ModuleKey, "dashboard">, { title: string; subtitle: string; tabs: string[]; columns: string[]; rows: Row[]; action: string }> = {
   crm: { title: "Customer relationship management", subtitle: "Leads, ownership, pipeline and follow-ups", tabs: ["Customers", "Pipeline", "Follow-ups", "Handover"], columns: ["Reference", "Customer", "Stage", "Owner", "Value", "Next action"], action: "New customer", rows: [
@@ -96,6 +97,7 @@ export function FrameApp() {
   const [authChecking, setAuthChecking] = useState(liveApiEnabled);
   const [mustChangePassword,setMustChangePassword]=useState(false);
   const [currentEmployee,setCurrentEmployee]=useState<Record<string,string>|null>(null);
+  const [permissions,setPermissions]=useState<string[]>([]);
   const [dashboardMetrics,setDashboardMetrics]=useState<Record<string,number>|null>(null);
   const [loginPassword,setLoginPassword]=useState("");
   const [active, setActive] = useState<ModuleKey>("dashboard");
@@ -113,7 +115,7 @@ export function FrameApp() {
   const current = active === "dashboard" ? null : moduleData[active];
   const rows = useMemo(() => (liveRows ?? current?.rows ?? []).filter(row => Object.values(row).some(value => String(value).toLowerCase().includes(query.toLowerCase()))), [current, liveRows, query]);
 
-  useEffect(() => { if (!liveApiEnabled) return; frameApi.me().then(result => {setAuthenticated(true);setCurrentEmployee(result.employee);setMustChangePassword(Boolean(result.employee.must_change_password));}).catch(() => setAuthenticated(false)).finally(() => setAuthChecking(false)); }, []);
+  useEffect(() => { if (!liveApiEnabled) return; frameApi.me().then(result => {setAuthenticated(true);setCurrentEmployee(result.employee);setPermissions(result.permissions);setMustChangePassword(Boolean(result.employee.must_change_password));}).catch(() => setAuthenticated(false)).finally(() => setAuthChecking(false)); }, []);
   useEffect(()=>{if(!liveApiEnabled||!authenticated||active!=="dashboard")return;let cancelled=false;frameApi.dashboard().then(value=>{if(!cancelled)setDashboardMetrics(value);}).catch(error=>flash(error.message));return()=>{cancelled=true;};},[active,authenticated]);
   useEffect(() => { if (!liveApiEnabled || !authenticated) return; const loaders:Partial<Record<ModuleKey,Array<()=>Promise<{data:Record<string,unknown>[]}>>>>={
     crm:[frameApi.customers,frameApi.customers,frameApi.customers,frameApi.customers],
@@ -130,15 +132,16 @@ export function FrameApp() {
   };const loader=loaders[active]?.[tab]??loaders[active]?.[0];if(!loader)return;let cancelled=false;queueMicrotask(()=>{if(!cancelled)setLoading(true);});loader().then(result=>{if(!cancelled)setLiveRows(mapApiRows(active,result.data,tab));}).catch(error=>{if(!cancelled){setLiveRows([]);flash(error.message);}}).finally(()=>{if(!cancelled)setLoading(false);});return()=>{cancelled=true;};},[active,tab,authenticated]);
   useEffect(()=>{if(!liveApiEnabled||query.trim().length<2){const clear=window.setTimeout(()=>setSearchResults([]),0);return()=>window.clearTimeout(clear);}const timer=window.setTimeout(()=>{frameApi.search(query).then(result=>setSearchResults(result.data.map(item=>({_id:String(item.id),Type:String(item.type),Reference:String(item.reference),Label:String(item.label)})))).catch(()=>setSearchResults([]));},250);return()=>window.clearTimeout(timer);},[query]);
 
-  function go(key: ModuleKey) { setActive(key); setTab(0); setQuery(""); setLiveRows(null); setMenuOpen(false); window.location.hash = key; }
+  const allowedNav=liveApiEnabled?nav.filter(item=>modulePermissions[item.key].some(permission=>permissions.includes(permission))):nav;
+  function go(key: ModuleKey) { if(liveApiEnabled&&!modulePermissions[key].some(permission=>permissions.includes(permission)))return;setActive(key); setTab(0); setQuery(""); setLiveRows(null); setMenuOpen(false); window.location.hash = key; }
   function flash(message: string) { setNotice(message); window.setTimeout(() => setNotice(""), 2800); }
 
   if (authChecking) return <main className="auth-loading"><div className="login-logo">F</div><p>Securing your FRAME workspace…</p></main>;
-  if (!authenticated) return <LoginScreen onLogin={async(employeeId,password) => { const result=await frameApi.login(employeeId,password);setLoginPassword(password);setMustChangePassword(result.mustChangePassword);setAuthenticated(true); }} />;
+  if (!authenticated) return <LoginScreen onLogin={async(employeeId,password) => { const result=await frameApi.login(employeeId,password);const access=await frameApi.me();setLoginPassword(password);setMustChangePassword(result.mustChangePassword);setCurrentEmployee(access.employee);setPermissions(access.permissions);setAuthenticated(true);const first=nav.find(item=>modulePermissions[item.key].some(permission=>access.permissions.includes(permission)))?.key??"dashboard";setActive(first);window.location.hash=first; }} />;
   return <main className="app-shell">
     <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
       <div className="brand"><span className="brand-mark">F</span><div><strong>FRAME</strong><small>OPERATING SYSTEM</small></div><button className="close-menu" onClick={() => setMenuOpen(false)}>×</button></div>
-      <nav aria-label="Primary navigation"><p className="nav-label">Workspace</p>{nav.map(item => <button className={active === item.key ? "nav-item active" : "nav-item"} onClick={() => go(item.key)} key={item.key}><span>{item.icon}</span>{item.label}{item.badge ? <b>{item.badge}</b> : null}</button>)}</nav>
+      <nav aria-label="Primary navigation"><p className="nav-label">Workspace</p>{allowedNav.map(item => <button className={active === item.key ? "nav-item active" : "nav-item"} onClick={() => go(item.key)} key={item.key}><span>{item.icon}</span>{item.label}{item.badge ? <b>{item.badge}</b> : null}</button>)}</nav>
       <div className="sidebar-footer"><div className="avatar">{currentEmployee?`${currentEmployee.first_name?.[0]??""}${currentEmployee.last_name?.[0]??""}`:"AN"}</div><div><strong>{currentEmployee?`${currentEmployee.first_name} ${currentEmployee.last_name}`:"Amir Noor"}</strong><small>{currentEmployee?.employee_number??"Chief Executive Officer"}</small></div><button onClick={async() => { if(liveApiEnabled) await frameApi.logout(); setAuthenticated(false); }} aria-label="Sign out">↪</button></div>
     </aside>
     <section className="workspace">
