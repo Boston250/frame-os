@@ -1,0 +1,7 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+test("HR can create and edit full employee profiles except Super Admin",async()=>{const [migration,routes,ui,migrator]=await Promise.all([readFile(new URL("../database/011-hr-employee-management.sql",import.meta.url),"utf8"),readFile(new URL("../server/employee-profile-routes.mjs",import.meta.url),"utf8"),readFile(new URL("../app/frame-app.tsx",import.meta.url),"utf8"),readFile(new URL("../server/migrate.mjs",import.meta.url),"utf8")]);for(const permission of ["employees.create","employees.edit","employees.sensitive"])assert.match(migration,new RegExp(permission.replace(".","\\.")));assert.match(migration,/lower\(r\.name\) LIKE '%hr%'/);assert.match(routes,/Administrator records cannot be edited by HR/);assert.match(routes,/employee_onboarding_profiles/);assert.match(ui,/EmployeeProfileDrawer/);assert.match(ui,/Save complete profile/);assert.match(migrator,/011-hr-employee-management\.sql/);});
+
+test("employee onboarding no longer includes contract upload",async()=>{const [ui,routes,migration]=await Promise.all([readFile(new URL("../app/frame-app.tsx",import.meta.url),"utf8"),readFile(new URL("../server/index.mjs",import.meta.url),"utf8"),readFile(new URL("../database/010-remove-employee-contract.sql",import.meta.url),"utf8")]);assert.doesNotMatch(ui,/Signed employment contract/);assert.doesNotMatch(routes,/contractBase64/);assert.match(migration,/DROP COLUMN IF EXISTS contract_document/);});
