@@ -11,11 +11,13 @@ test("production administration exposes roles permissions networks and schedules
     readFile(new URL("../app/frame-app.tsx",import.meta.url),"utf8"),
     readFile(new URL("../server/migrate.mjs",import.meta.url),"utf8"),
   ]);
-  for(const endpoint of ["permissions","attendance-networks","attendance-schedules"])assert.match(routes,new RegExp(endpoint));
+  for(const endpoint of ["permissions","role-assignments","attendance-networks","attendance-schedules"])assert.match(routes,new RegExp(endpoint));
   assert.match(routes,/before:\{permissions:before\},after:\{permissions:grants\}/);
-  for(const control of ["attendanceNetworks","attendanceSchedules","assignRole","createRole"])assert.match(client,new RegExp(control));
-  for(const title of ["Authorize office network","Create attendance schedule","Assign role to employee"])assert.match(app,new RegExp(title));
+  for(const control of ["attendanceNetworks","attendanceSchedules","assignRole","roleAssignments","createRole"])assert.match(client,new RegExp(control));
+  for(const title of ["Authorize office network","Create attendance schedule","Assign role to employee","Select employee","Select role"])assert.match(app,new RegExp(title));
   assert.match(migrator,/006-administration-controls\.sql/);
+  assert.match(migrator,/007-salesperson-role\.sql/);
+  assert.match(app,/name==="salesperson"/);
 });
 
 test("administration migration grants attendance configuration to Super Admin",async()=>{
