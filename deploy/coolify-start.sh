@@ -17,7 +17,7 @@ npm run api &
 api_pid=$!
 npm run worker &
 worker_pid=$!
-npm run start &
+PORT=3000 npm run start &
 app_pid=$!
 
 cleanup() {
