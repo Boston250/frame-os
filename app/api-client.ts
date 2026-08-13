@@ -28,6 +28,8 @@ export const frameApi={
   attendanceNetworks:{list:()=>request<{data:Record<string,unknown>[]}>("/api/attendance-networks"),create:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/attendance-networks",{method:"POST",body:JSON.stringify(input)})},
   attendanceSchedules:{list:()=>request<{data:Record<string,unknown>[]}>("/api/attendance-schedules"),create:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/attendance-schedules",{method:"POST",body:JSON.stringify(input)})},
   exportReport:(reportKey:string,format:"pdf"|"xlsx")=>request<{data:{id:string;status:string}}>("/api/exports",{method:"POST",body:JSON.stringify({reportKey,format})}),
+  exportStatus:(id:string)=>request<{data:{id:string;report_key:string;format:"pdf"|"xlsx";status:string}}>(`/api/exports/${id}`),
+  exportDownloadUrl:(id:string)=>`/api/exports/${id}/download`,
   attendance:(action:"check-in"|"check-out")=>request<{data:Record<string,unknown>}>(`/api/attendance/${action}`,{method:"POST"}),
   attendanceEntries:()=>request<{data:Record<string,unknown>[]}>("/api/attendance"),
   weeklyKpi:()=>request<{data:Record<string,unknown>[]}>("/api/weekly-kpi"),
