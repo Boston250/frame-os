@@ -35,6 +35,7 @@ export const frameApi={
   exportDownloadUrl:(id:string)=>`/api/exports/${id}/download`,
   attendance:(action:"check-in"|"check-out")=>request<{data:Record<string,unknown>}>(`/api/attendance/${action}`,{method:"POST"}),
   attendanceEntries:()=>request<{data:Record<string,unknown>[]}>("/api/attendance"),
+  employeeExits:()=>request<{data:Record<string,unknown>[]}>("/api/employee-exits"),
   weeklyKpi:()=>request<{data:Record<string,unknown>[]}>("/api/weekly-kpi"),
   accounting:()=>request<{data:Record<string,unknown>[]}>("/api/accounting"),
   createJournal:(input:Record<string,unknown>)=>request<{data:Record<string,unknown>}>("/api/accounting",{method:"POST",body:JSON.stringify(input)}),
