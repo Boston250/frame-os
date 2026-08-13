@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { pool } from "./db.mjs";
 import { tokenHash } from "./security.mjs";
 
-export async function jsonBody(request){const chunks=[];for await(const chunk of request){chunks.push(chunk);if(Buffer.concat(chunks).length>1_000_000)throw Object.assign(new Error("Request too large"),{status:413});}if(!chunks.length)return{};try{return JSON.parse(Buffer.concat(chunks).toString("utf8"));}catch{throw Object.assign(new Error("Invalid JSON"),{status:400});}}
+export async function jsonBody(request,maxBytes=1_000_000){const chunks=[];let size=0;for await(const chunk of request){chunks.push(chunk);size+=chunk.length;if(size>maxBytes)throw Object.assign(new Error("Request too large"),{status:413});}if(!chunks.length)return{};try{return JSON.parse(Buffer.concat(chunks).toString("utf8"));}catch{throw Object.assign(new Error("Invalid JSON"),{status:400});}}
 export function send(response,status,data,headers={}){response.writeHead(status,{"content-type":"application/json; charset=utf-8","cache-control":"no-store","content-security-policy":"default-src 'none'; frame-ancestors 'none'","x-content-type-options":"nosniff","x-frame-options":"DENY","referrer-policy":"no-referrer","permissions-policy":"camera=(), microphone=(), geolocation=()",...headers});response.end(JSON.stringify(data));}
 export function requestContext(request){return{requestId:request.headers["x-request-id"]||randomUUID(),ip:String(request.headers["x-forwarded-for"]||request.socket.remoteAddress||"").split(",")[0],userAgent:request.headers["user-agent"]||""}}
 export function cookie(request,name){const value=request.headers.cookie?.split(";").map(v=>v.trim()).find(v=>v.startsWith(`${name}=`));return value?decodeURIComponent(value.slice(name.length+1)):null}
