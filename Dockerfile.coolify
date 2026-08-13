@@ -8,7 +8,7 @@ RUN npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
-RUN apk add --no-cache nginx
+RUN apk add --no-cache nginx curl
 ENV NODE_ENV=production \
     NEXT_PUBLIC_FRAME_API_MODE=live \
     API_PORT=4000 \
@@ -19,5 +19,5 @@ RUN chmod +x deploy/coolify-start.sh \
     && mkdir -p /var/lib/frame/exports
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=5 \
-  CMD wget -qO- http://127.0.0.1:8080/api/health >/dev/null || exit 1
+  CMD curl --fail --silent http://127.0.0.1:8080/api/health >/dev/null || exit 1
 CMD ["./deploy/coolify-start.sh"]
