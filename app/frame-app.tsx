@@ -178,7 +178,7 @@ function mapApiRows(module: ModuleKey, data: Record<string,unknown>[], tab=0): R
 
 function LoginScreen({ onLogin }: { onLogin: (employeeId:string,password:string) => Promise<void> }) {
   const [employeeId, setEmployeeId] = useState("FRM-0001");
-  const [password, setPassword] = useState("frame-demo");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting,setSubmitting]=useState(false);
   async function submit(event: React.FormEvent) { event.preventDefault(); if (!employeeId.trim() || !password) { setError("Enter your employee ID and password."); return; } setSubmitting(true);setError("");try{await onLogin(employeeId,password);}catch(error){setError(error instanceof Error?error.message:"Sign in failed");}finally{setSubmitting(false);} }

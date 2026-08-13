@@ -11,7 +11,12 @@ import { registerAdminRoutes } from "./admin-routes.mjs";
 
 const port=Number(process.env.API_PORT??4000);
 const routes=[];
+const loginAttempts=new Map();
+const loginWindowMs=15*60*1000;
+const loginLimit=10;
 function route(method,pattern,handler){routes.push({method,pattern,handler});}
+
+function enforceLoginLimit(req){const now=Date.now(),key=requestContext(req).ip;const recent=(loginAttempts.get(key)||[]).filter(timestamp=>now-timestamp<loginWindowMs);if(recent.length>=loginLimit)throw Object.assign(new Error("Too many sign-in attempts. Try again in 15 minutes."),{status:429});recent.push(now);loginAttempts.set(key,recent);}
 
 route("GET",/^\/api\/health$/,async(_req,res)=>{await pool.query("SELECT 1");send(res,200,{status:"ok",service:"frame-api"});});
 route("POST",/^\/api\/auth\/login$/,async(req,res)=>{const body=await jsonBody(req);const employeeNumber=String(body.employeeId??"").trim().toUpperCase();const {rows}=await pool.query(`SELECT a.*,e.id employee_id,e.company_id,e.employee_number,e.first_name,e.last_name,e.status FROM user_accounts a JOIN employees e ON e.id=a.employee_id WHERE e.employee_number=$1`,[employeeNumber]);const account=rows[0];const temporaryExpired=account?.must_change_password&&account.temporary_password_expires_at&&account.temporary_password_expires_at<new Date();if(!account||account.disabled_at||account.status!=="active"||account.locked_until>new Date()||temporaryExpired||!await verifyPassword(String(body.password??""),account.password_hash)){if(account&&!temporaryExpired)await pool.query("UPDATE user_accounts SET failed_login_count=failed_login_count+1,locked_until=CASE WHEN failed_login_count>=4 THEN now()+interval '15 minutes' ELSE locked_until END WHERE id=$1",[account.id]);throw Object.assign(new Error(temporaryExpired?"Temporary password expired. Contact HR or Super Admin.":"Invalid employee ID or password"),{status:401});}const token=newSessionToken();await transaction(async client=>{await client.query("UPDATE user_accounts SET failed_login_count=0,locked_until=NULL,last_login_at=now() WHERE id=$1",[account.id]);await client.query("INSERT INTO sessions(account_id,token_hash,expires_at,ip_address,user_agent) VALUES($1,$2,now()+interval '1 hour',$3,$4)",[account.id,tokenHash(token),requestContext(req).ip,req.headers["user-agent"]||null]);await audit(client,{companyId:account.company_id,actorId:account.employee_id,action:"auth.login",module:"identity",entityType:"employee",entityId:account.employee_id,requestId:randomUUID(),ip:requestContext(req).ip,userAgent:req.headers["user-agent"]});});send(res,200,{employee:{id:account.employee_id,employeeNumber:account.employee_number,name:`${account.first_name} ${account.last_name}`},mustChangePassword:account.must_change_password},{"set-cookie":sessionCookie(token)});});
@@ -37,7 +42,7 @@ registerWorkflowRoutes(route);
 registerActionRoutes(route);
 registerAdminRoutes(route);
 
-const server=http.createServer(async(req,res)=>{const url=new URL(req.url,"http://localhost");const found=routes.find(item=>item.method===req.method&&item.pattern.test(url.pathname));if(!found)return send(res,404,{error:"Not found"});const match=url.pathname.match(found.pattern);try{await found.handler(req,res,match);}catch(error){console.error(error);send(res,error.status||500,{error:error.status?error.message:"Internal server error"});}});
+const server=http.createServer(async(req,res)=>{const url=new URL(req.url,"http://localhost");const found=routes.find(item=>item.method===req.method&&item.pattern.test(url.pathname));if(!found)return send(res,404,{error:"Not found"});const match=url.pathname.match(found.pattern);try{if(req.method==="POST"&&url.pathname==="/api/auth/login")enforceLoginLimit(req);await found.handler(req,res,match);}catch(error){console.error(error);send(res,error.status||500,{error:error.status?error.message:"Internal server error"});}});
 server.listen(port,"0.0.0.0",()=>console.log(JSON.stringify({service:"frame-api",port,state:"ready"})));
 process.on("SIGTERM",async()=>{server.close();await pool.end();});
 
