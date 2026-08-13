@@ -14,6 +14,7 @@ export const frameApi={
   approvals:(view:"mine"|"submitted"|"completed"|"all"="mine")=>request<{data:Record<string,unknown>[]}>(`/api/approvals?view=${view}`),
   createDepartment:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/departments",{method:"POST",body:JSON.stringify(input)}),
   createEmployee:(input:Record<string,string>)=>request<{data:Record<string,unknown>;temporaryPassword:string}>("/api/employees",{method:"POST",body:JSON.stringify(input)}),
+  resetEmployeePassword:(employeeId:string)=>request<{temporaryPassword:string}>(`/api/employees/${employeeId}/reset-password`,{method:"POST"}),
   createCustomer:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/customers",{method:"POST",body:JSON.stringify(input)}),
   createTask:(input:Record<string,string>)=>request<{data:Record<string,unknown>}>("/api/tasks",{method:"POST",body:JSON.stringify(input)}),
   updateCore:(resource:"departments"|"employees"|"customers"|"tasks",id:string,input:Record<string,string>)=>request<{data:Record<string,unknown>}>(`/api/${resource}/${id}`,{method:"PATCH",body:JSON.stringify(input)}),
