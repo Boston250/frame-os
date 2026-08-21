@@ -114,7 +114,7 @@ export function FrameApp() {
   const [searchResults,setSearchResults]=useState<Row[]>([]);
   const [notifications,setNotifications]=useState<Row[]|null>(null);
   const currentBase = active === "dashboard" ? null : moduleData[active];
-  const current = useMemo(()=>currentBase&&active==="hr"&&!permissions.includes("employees.deleted.view")?{...currentBase,tabs:currentBase.tabs.filter(label=>label!=="Deleted archive")}:currentBase,[active,currentBase,permissions]);
+  const current = useMemo(()=>currentBase&&active==="hr"&&!permissions.includes("employees_deleted.view")?{...currentBase,tabs:currentBase.tabs.filter(label=>label!=="Deleted archive")}:currentBase,[active,currentBase,permissions]);
   const rows = useMemo(() => (liveRows ?? current?.rows ?? []).filter(row => Object.values(row).some(value => String(value).toLowerCase().includes(query.toLowerCase()))), [current, liveRows, query]);
 
   useEffect(() => { if (!liveApiEnabled) return; frameApi.me().then(result => {setAuthenticated(true);setCurrentEmployee(result.employee);setPermissions(result.permissions);setMustChangePassword(Boolean(result.employee.must_change_password));const requested=window.location.hash.slice(1) as ModuleKey;if(nav.some(item=>item.key===requested)&&modulePermissions[requested].some(permission=>result.permissions.includes(permission)))setActive(requested);}).catch(() => setAuthenticated(false)).finally(() => setAuthChecking(false)); }, []);

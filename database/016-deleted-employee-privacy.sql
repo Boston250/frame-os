@@ -11,13 +11,13 @@ CREATE INDEX IF NOT EXISTS deleted_employee_archive_company_idx
   ON deleted_employee_archive(company_id, deleted_at DESC);
 
 INSERT INTO permissions(permission_key,description) VALUES
-  ('employees.deleted.view','View deleted employee profiles and their historical audit records')
+  ('employees_deleted.view','View deleted employee profiles and their historical audit records')
 ON CONFLICT(permission_key) DO UPDATE SET description=EXCLUDED.description;
 
 INSERT INTO role_permissions(role_id,permission_id,scope)
 SELECT r.id,p.id,'company'::permission_scope
 FROM roles r
-JOIN permissions p ON p.permission_key='employees.deleted.view'
+JOIN permissions p ON p.permission_key='employees_deleted.view'
 WHERE r.name='Super Admin'
 ON CONFLICT(role_id,permission_id,scope) DO NOTHING;
 

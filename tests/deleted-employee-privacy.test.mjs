@@ -16,7 +16,7 @@ test("deleted employee profiles and history are visible only to Super Admin",asy
   assert.match(migration,/deleted_employee_archive/);
   assert.match(migration,/r\.name='Super Admin'/);
   assert.doesNotMatch(migration,/r\.name IN \([^)]*HR/);
-  assert.match(lifecycle,/employees\.deleted\.view/);
+  assert.match(lifecycle,/employees_deleted\.view/);
   assert.match(lifecycle,/profile_snapshot/);
   assert.match(lifecycle,/\/history/);
   assert.match(core,/e\.status<>'deleted'/);
@@ -25,7 +25,7 @@ test("deleted employee profiles and history are visible only to Super Admin",asy
   assert.match(profile,/e\.status<>'deleted'/);
   assert.match(worker,/status<>'deleted'/);
   assert.match(worker,/deleted_employee_archive/);
-  assert.match(ui,/permissions\.includes\("employees\.deleted\.view"\)/);
+  assert.match(ui,/permissions\.includes\("employees_deleted\.view"\)/);
   assert.match(ui,/Deleted archive/);
   assert.match(api,/deletedEmployees/);
   assert.match(api,/deletedEmployeeHistory/);
