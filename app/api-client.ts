@@ -9,6 +9,8 @@ export const frameApi={
   changePassword:(currentPassword:string,newPassword:string)=>request<{ok:boolean}>("/api/auth/change-password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})}),
   departments:()=>request<{data:Record<string,unknown>[]}>("/api/departments"),
   employees:()=>request<{data:Record<string,unknown>[]}>("/api/employees"),
+  deletedEmployees:()=>request<{data:Record<string,unknown>[]}>("/api/employees/deleted"),
+  deletedEmployeeHistory:(employeeId:string)=>request<{data:Record<string,unknown>[]}>(`/api/employees/deleted/${employeeId}/history`),
   customers:()=>request<{data:Record<string,unknown>[]}>("/api/customers"),
   tasks:()=>request<{data:Record<string,unknown>[]}>("/api/tasks"),
   approvals:(view:"mine"|"submitted"|"completed"|"all"="mine")=>request<{data:Record<string,unknown>[]}>(`/api/approvals?view=${view}`),
