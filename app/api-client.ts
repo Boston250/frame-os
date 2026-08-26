@@ -52,6 +52,7 @@ export const frameApi={
   uploadKpiDocument:(input:{title:string;fileName:string;contentBase64:string})=>request<{data:Record<string,unknown>}>("/api/kpi-documents",{method:"POST",body:JSON.stringify(input)}),
   kpiDocumentViewUrl:(id:string)=>`/api/kpi-documents/${id}/view`,
   kpiDocumentDownloadUrl:(id:string)=>`/api/kpi-documents/${id}/download`,
+  deleteKpiDocument:(id:string)=>request<{ok:boolean}>(`/api/kpi-documents/${id}`,{method:"DELETE"}),
   employeeContracts:()=>request<{data:Record<string,unknown>[]}>("/api/employee-contracts"),
   employeeContractEmployees:()=>request<{data:Record<string,unknown>[]}>("/api/employee-contracts/available-employees"),
   uploadEmployeeContract:(input:{employeeId:string;title:string;expiresOn:string;fileName:string;contentBase64:string})=>request<{data:Record<string,unknown>}>("/api/employee-contracts",{method:"POST",body:JSON.stringify(input)}),
