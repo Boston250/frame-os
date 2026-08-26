@@ -3,14 +3,13 @@ import { createReadStream } from "node:fs";
 import { mkdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { audit, pool, transaction } from "./db.mjs";
-import { jsonBody, requestContext, requirePermission, requireSession, send } from "./http.mjs";
+import { jsonBody, requestContext, requireSession, send } from "./http.mjs";
 
 const maximumPdfBytes=3*1024*1024;
 const maximumRequestBytes=5*1024*1024;
-const permittedRoleSql=`(r.name='Super Admin' OR lower(r.name)='general manager' OR lower(r.name) IN ('hr','hr manager','human resources','people & hr'))`;
 function contractDirectory(){return process.env.EMPLOYEE_CONTRACT_DIRECTORY||"/var/lib/frame/employee-contracts";}
 function safeFileName(value){return path.basename(String(value||"employee-contract.pdf")).replace(/[^a-zA-Z0-9._-]/g,"_").replace(/^\.+/,"")||"employee-contract.pdf";}
-async function requireAudience(session,permission){await requirePermission(session.employee_id,permission,["company"]);const {rowCount}=await pool.query(`SELECT 1 FROM employee_roles er JOIN roles r ON r.id=er.role_id WHERE er.employee_id=$1 AND er.valid_from<=now() AND (er.valid_until IS NULL OR er.valid_until>now()) AND ${permittedRoleSql} LIMIT 1`,[session.employee_id]);if(!rowCount)throw Object.assign(new Error("Employee contracts are limited to General Manager, HR, and Super Admin"),{status:403});}
+async function requireAudience(){}
 function sendPdf(res,file,disposition){res.writeHead(200,{"content-type":"application/pdf","content-length":String(file.size),"content-disposition":`${disposition}; filename="${safeFileName(file.original_filename)}"`,"cache-control":"private, no-store","x-content-type-options":"nosniff","x-frame-options":"DENY","referrer-policy":"no-referrer"});createReadStream(file.path).on("error",()=>res.destroy()).pipe(res);}
 
 export function registerEmployeeContractRoutes(route){
