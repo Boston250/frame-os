@@ -10,6 +10,7 @@ import { registerActionRoutes } from "./action-routes.mjs";
 import { registerAdminRoutes } from "./admin-routes.mjs";
 import { registerEmployeeProfileRoutes } from "./employee-profile-routes.mjs";
 import { registerEmployeeLifecycleRoutes } from "./employee-lifecycle-routes.mjs";
+import { registerKpiDocumentRoutes } from "./kpi-document-routes.mjs";
 
 const port=Number(process.env.API_PORT??4000);
 const routes=[];
@@ -45,6 +46,7 @@ registerActionRoutes(route);
 registerAdminRoutes(route);
 registerEmployeeProfileRoutes(route);
 registerEmployeeLifecycleRoutes(route);
+registerKpiDocumentRoutes(route);
 
 const server=http.createServer(async(req,res)=>{const url=new URL(req.url,"http://localhost");const found=routes.find(item=>item.method===req.method&&item.pattern.test(url.pathname));if(!found)return send(res,404,{error:"Not found"});const match=url.pathname.match(found.pattern);try{if(req.method==="POST"&&url.pathname==="/api/auth/login")enforceLoginLimit(req);await found.handler(req,res,match);}catch(error){console.error(error);send(res,error.status||500,{error:error.status?error.message:"Internal server error"});}});
 server.listen(port,"0.0.0.0",()=>console.log(JSON.stringify({service:"frame-api",port,state:"ready"})));
