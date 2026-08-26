@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS kpi_documents (
   original_filename text NOT NULL,
   stored_filename text NOT NULL UNIQUE,
   mime_type text NOT NULL DEFAULT 'application/pdf' CHECK (mime_type = 'application/pdf'),
-  file_size integer NOT NULL CHECK (file_size > 0 AND file_size <= 15728640),
+  file_size integer NOT NULL CHECK (file_size > 0 AND file_size <= 3145728),
   uploaded_by uuid NOT NULL REFERENCES employees(id),
   uploaded_at timestamptz NOT NULL DEFAULT now()
 );
