@@ -10,6 +10,8 @@ BEGIN
   IF names IS NOT NULL THEN EXECUTE 'TRUNCATE TABLE ' || names || ' RESTART IDENTITY'; END IF;
 END $$;
 
+UPDATE employee_roles SET assigned_by=(SELECT id FROM employees WHERE employee_number='FRM-0003')
+WHERE assigned_by IS DISTINCT FROM (SELECT id FROM employees WHERE employee_number='FRM-0003');
 DELETE FROM employee_roles WHERE employee_id NOT IN (SELECT id FROM employees WHERE employee_number='FRM-0003');
 DELETE FROM user_accounts WHERE employee_id NOT IN (SELECT id FROM employees WHERE employee_number='FRM-0003');
 ALTER TABLE employees DISABLE TRIGGER employees_no_delete;
