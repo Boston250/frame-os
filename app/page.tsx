@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FrameApp } from "./frame-app";
+import { NewFrameApp } from "./new-frame-app";
 
 export const metadata: Metadata = {
   title: "Command Center",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <FrameApp />;
+  return <NewFrameApp />;
 }

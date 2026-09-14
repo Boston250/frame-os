@@ -1,0 +1,15 @@
+"use client";
+import { FormEvent, useEffect, useState } from "react";
+import { frameApi } from "./api-client";
+import { SimpleWorkspace } from "./simple-workspace";
+
+export function NewFrameApp(){
+  const [checking,setChecking]=useState(true),[signedIn,setSignedIn]=useState(false),[temporary,setTemporary]=useState("");
+  useEffect(()=>{frameApi.me().then(r=>{setSignedIn(true);if(String(r.employee.must_change_password)==="true")setTemporary("required");}).catch(()=>setSignedIn(false)).finally(()=>setChecking(false));},[]);
+  if(checking)return <main className="new-auth"><div className="new-logo">F</div><p>Loading FRAME OS</p></main>;
+  if(!signedIn)return <SignIn done={(password,change)=>{setTemporary(change?password:"");setSignedIn(true);}}/>;
+  if(temporary)return <ChangePassword temporary={temporary==="required"?"":temporary} done={()=>setTemporary("")}/>;
+  return <SimpleWorkspace onLogout={async()=>{await frameApi.logout();setSignedIn(false);}}/>;
+}
+function SignIn({done}:{done:(password:string,change:boolean)=>void}){const [error,setError]=useState(""),[busy,setBusy]=useState(false);async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);setBusy(true);try{const r=await frameApi.login(String(f.get("employeeId")),String(f.get("password")));done(String(f.get("password")),Boolean(r.mustChangePassword));}catch(x){setError(x instanceof Error?x.message:"Sign in failed");}finally{setBusy(false)}}return <main className="new-auth"><form onSubmit={submit}><div className="new-logo">F</div><h1>FRAME OS</h1><p>Sign in using your employee ID and password.</p><label>Employee ID<input name="employeeId" placeholder="FRM-0001" required autoComplete="username"/></label><label>Password<input name="password" type="password" required autoComplete="current-password"/></label>{error?<div className="auth-error">{error}</div>:null}<button disabled={busy}>{busy?"Signing in…":"Sign in"}</button></form></main>}
+function ChangePassword({temporary,done}:{temporary:string;done:()=>void}){const [error,setError]=useState(""),[busy,setBusy]=useState(false);async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);const next=String(f.get("password"));if(next!==String(f.get("confirm"))){setError("Passwords do not match");return;}setBusy(true);try{await frameApi.changePassword(temporary||String(f.get("current")),next);done();}catch(x){setError(x instanceof Error?x.message:"Password update failed");}finally{setBusy(false)}}return <main className="new-auth"><form onSubmit={submit}><div className="new-logo">F</div><h1>Set your password</h1><p>Create your permanent password before opening the workspace.</p>{!temporary?<label>Temporary password<input name="current" type="password" required/></label>:null}<label>New password<input name="password" type="password" minLength={12} required/></label><label>Confirm password<input name="confirm" type="password" minLength={12} required/></label>{error?<div className="auth-error">{error}</div>:null}<button disabled={busy}>{busy?"Saving…":"Continue"}</button></form></main>}
