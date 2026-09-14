@@ -13,5 +13,6 @@ END $$;
 DELETE FROM employee_roles WHERE employee_id NOT IN (SELECT id FROM employees WHERE employee_number='FRM-0003');
 DELETE FROM user_accounts WHERE employee_id NOT IN (SELECT id FROM employees WHERE employee_number='FRM-0003');
 ALTER TABLE employees DISABLE TRIGGER employees_no_delete;
+UPDATE employees SET manager_id=NULL;
 DELETE FROM employees WHERE employee_number<>'FRM-0003';
 ALTER TABLE employees ENABLE TRIGGER employees_no_delete;
