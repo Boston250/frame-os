@@ -53,7 +53,7 @@ CREATE TABLE department_task_targets (
 -- The original data model supports dynamic departments. These four become the operating defaults.
 INSERT INTO departments(company_id,name,code)
 SELECT c.id,v.name,v.code FROM companies c CROSS JOIN (VALUES ('HR','HR'),('Sales','SAL'),('Marketing','MKT'),('Production','PRO')) v(name,code)
-WHERE NOT EXISTS (SELECT 1 FROM departments d WHERE d.company_id=c.id AND lower(d.name)=lower(v.name));
+ON CONFLICT(company_id,code) DO NOTHING;
 
 INSERT INTO roles(company_id,name,description)
 SELECT c.id,v.name,'FRAME department workspace role' FROM companies c CROSS JOIN (VALUES ('CEO'),('HR'),('Sales Manager'),('Salesperson'),('Marketing'),('Production'),('System Admin')) v(name)
