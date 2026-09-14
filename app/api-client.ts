@@ -20,6 +20,7 @@ export const frameApi={
   simpleEmployees:()=>request<{data:Record<string,unknown>[]}>("/api/simple-employees"),
   simpleDepartments:()=>request<{data:Record<string,unknown>[]}>("/api/simple-departments"),
   simpleRoles:()=>request<{data:Record<string,unknown>[]}>("/api/simple-roles"),
+  simpleAssets:()=>request<{data:Record<string,unknown>[]}>("/api/simple-assets"),
   createSimpleEmployee:(input:Record<string,unknown>)=>request<{data:Record<string,unknown>;temporaryPassword:string}>("/api/simple-employees",{method:"POST",body:JSON.stringify(input)}),
   login:(employeeId:string,password:string)=>request<{employee:Record<string,string>;mustChangePassword:boolean}>("/api/auth/login",{method:"POST",body:JSON.stringify({employeeId,password})}),
   logout:()=>request<{ok:boolean}>("/api/auth/logout",{method:"POST"}),
