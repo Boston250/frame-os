@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { frameApi, liveApiEnabled } from "./api-client";
+import { SimpleWorkspace } from "./simple-workspace";
 
 type ModuleKey = "dashboard" | "crm" | "clients" | "operations" | "performance" | "hr" | "finance" | "assets" | "procurement" | "approvals" | "reports" | "administration";
 type Row = Record<string, string | number>;
@@ -136,6 +137,7 @@ export function FrameApp() {
 
   if (authChecking) return <main className="auth-loading"><div className="login-logo">F</div><p>Securing your FRAME workspace…</p></main>;
   if (!authenticated) return <LoginScreen onLogin={async(employeeId,password) => { const result=await frameApi.login(employeeId,password);const access=await frameApi.me();setLoginPassword(password);setMustChangePassword(result.mustChangePassword);setCurrentEmployee(access.employee);setPermissions(access.permissions);setAuthenticated(true);const first=nav.find(item=>modulePermissions[item.key].some(permission=>access.permissions.includes(permission)))?.key??"dashboard";setActive(first);window.location.hash=first; }} />;
+  if (liveApiEnabled && !mustChangePassword) return <SimpleWorkspace onLogout={async()=>{await frameApi.logout();setAuthenticated(false);}}/>;
   return <main className="app-shell">
     <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
       <div className="brand"><span className="brand-mark">F</span><div><strong>FRAME</strong><small>OPERATING SYSTEM</small></div><button className="close-menu" onClick={() => setMenuOpen(false)}>×</button></div>
